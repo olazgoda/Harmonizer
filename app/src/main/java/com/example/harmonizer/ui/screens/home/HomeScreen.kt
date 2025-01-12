@@ -51,11 +51,6 @@ fun HomeScreen(navController: NavController, viewModel: HouseholdViewModel) {
                 title = {
                     Text("Harmonizer", style = MaterialTheme.typography.headlineSmall)
                 },
-                navigationIcon = {
-                    IconButton(onClick = { /* Handle menu click */ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
-                    }
-                },
                 actions = {
                     IconButton(onClick = { /* Profile icon click */ }) {
                         Icon(
