@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
@@ -27,8 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
+import com.example.harmonizer.remote.api.models.responses.HouseholdTaskResponse
 import com.example.harmonizer.ui.screens.home.tasks.FilterTasksComponent
 import com.example.harmonizer.ui.screens.home.tasks.NewTaskDialog
+import com.example.harmonizer.ui.screens.home.tasks.TaskDetailsDialog
 import com.example.harmonizer.ui.screens.home.tasks.TaskFilters
 import com.example.harmonizer.ui.screens.home.tasks.TaskItem
 
@@ -37,8 +40,10 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
     val dateTimeNow = ZonedDateTime.now()
     val household by viewModel.household.observeAsState()
     var showNewTaskDialog by remember { mutableStateOf(false) }
+    var openTaskDetails by remember { mutableStateOf<HouseholdTaskResponse?>(null) }
     var showFilteringDropdown by remember { mutableStateOf(false) }
     var taskFilters by remember { mutableStateOf(TaskFilters(true, true, true)) }
+    var tasksListState = rememberLazyListState()
 
     Column(
         modifier = Modifier
@@ -84,7 +89,12 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
         NewTaskDialog(members = household!!.members, viewModel) { showNewTaskDialog = it }
     }
 
+    openTaskDetails?.let{ task ->
+        TaskDetailsDialog(task, household!!.members, viewModel, updateOpenDetailsTask = {openTaskDetails = it})
+    }
+
     LazyColumn(
+        state = tasksListState,
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 48.dp),
@@ -98,13 +108,12 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
                         (taskFilters.showOngoing && (task.dueDate >= dateTimeNow) && !task.isDone)
             }.sortedBy { it.dueDate }
 
-            items(items = filteredTasks)
+            items(items = filteredTasks, key = {it.id} )
             { task ->
                 TaskItem(
                     task = task,
-                    household!!.members,
                     dateTimeNow,
-                    viewModel = viewModel
+                    {openTaskDetails = it}
                 )
             }
         }

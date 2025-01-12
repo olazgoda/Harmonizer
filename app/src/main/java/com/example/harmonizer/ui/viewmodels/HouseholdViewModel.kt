@@ -39,8 +39,7 @@ class HouseholdViewModel(context: Context) : ViewModel() {
                 selectedHouseholdId.value!!,
                 jwtBearerHeaderValue
             )
-            if(householdEventsResponse.isSuccessful)
-            {
+            if (householdEventsResponse.isSuccessful) {
                 householdEvents.postValue(householdEventsResponse.body());
             }
 
@@ -61,7 +60,7 @@ class HouseholdViewModel(context: Context) : ViewModel() {
         dueDate: ZonedDateTime,
         assignedMemberId: Int?
     ) = viewModelScope.launch {
-        try{
+        try {
             val response = RetrofitClient.instance.createTask(
                 jwtToken = jwtBearerHeaderValue,
                 householdId = selectedHouseholdId.value!!,
@@ -80,8 +79,7 @@ class HouseholdViewModel(context: Context) : ViewModel() {
             }
 
             refreshHouseholdData();
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             raiseError("Could not create task", e)
         }
     }
@@ -90,10 +88,39 @@ class HouseholdViewModel(context: Context) : ViewModel() {
         updateTask(taskId, UpdateTaskRequest(dueDate = selectedDateMillis.toZonedDateTime()))
     }
 
+    fun updateTaskTitle(taskId: Int, taskCurrentTitle: String) = viewModelScope.launch {
+        updateTask(taskId, UpdateTaskRequest(name = taskCurrentTitle))
+    }
+
+    fun updateTaskDesc(taskId: Int, taskCurrentDesc: String) = viewModelScope.launch {
+        updateTask(taskId, UpdateTaskRequest(description = taskCurrentDesc))
+    }
+
     fun updateTaskDoneStatus(taskId: Int, isDone: Boolean) = viewModelScope.launch {
         updateTask(taskId, UpdateTaskRequest(isDone = isDone))
     }
-    
+
+    fun deleteTask(taskId: Int) = viewModelScope.launch {
+        try {
+            val response = RetrofitClient.instance
+                .deleteTask(
+                    selectedHouseholdId.value!!,
+                    taskId,
+                    jwtBearerHeaderValue
+                )
+
+            if (!response.isSuccessful) {
+                Log.d("HttpErrorBody", response.raw().body.toString())
+                handleErrorResponse(response.errorBody(), response.code())
+                return@launch
+            }
+
+            refreshHouseholdData();
+        } catch (e: Exception) {
+            raiseError("Could not delete task", e);
+        }
+    }
+
     fun inviteNewMember(newMemberEmail: String) = viewModelScope.launch {
         try {
             val response = RetrofitClient.instance
@@ -102,7 +129,7 @@ class HouseholdViewModel(context: Context) : ViewModel() {
                     CreateInvitationRequest(newMemberEmail),
                     jwtBearerHeaderValue
                 )
-            
+
             if (!response.isSuccessful) {
                 Log.d("HttpErrorBody", response.raw().body.toString())
                 handleErrorResponse(response.errorBody(), response.code())
@@ -110,13 +137,12 @@ class HouseholdViewModel(context: Context) : ViewModel() {
             }
 
             refreshHouseholdData();
-        }
-        catch(e: Exception) {
+        } catch (e: Exception) {
             raiseError("Could not invite member", e);
         }
     }
 
-    fun deleteMember(memberId: Int) = viewModelScope.launch{
+    fun deleteMember(memberId: Int) = viewModelScope.launch {
         try {
             val response = RetrofitClient.instance
                 .deleteMember(
@@ -132,13 +158,12 @@ class HouseholdViewModel(context: Context) : ViewModel() {
             }
 
             refreshHouseholdData();
-        }
-        catch(e: Exception) {
+        } catch (e: Exception) {
             raiseError("Could not invite member", e);
         }
     }
 
-    private fun updateTask(taskId: Int, request: UpdateTaskRequest) = viewModelScope.launch{
+    private fun updateTask(taskId: Int, request: UpdateTaskRequest) = viewModelScope.launch {
         try {
             val response = RetrofitClient.instance.updateTask(
                 jwtToken = jwtBearerHeaderValue,
@@ -153,29 +178,28 @@ class HouseholdViewModel(context: Context) : ViewModel() {
                 return@launch
             }
 
-            refreshHouseholdData();
+            refreshHouseholdData()
 
         } catch (e: Exception) {
             raiseError("Could not update task", e);
         }
     }
 
-    private fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int)
-    {
+    private fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
         val errorBodyRaw = errorBody?.string()
         Log.i("HttpResponse", "HttpResponseCode $responseCode.toString()")
         val errorMessageText = parseError(errorBodyRaw ?: "{}")
         raiseError(errorMessageText)
     }
 
-    private fun raiseError(errorMessageText: String, exception: Throwable? = null)
-    {
+    private fun raiseError(errorMessageText: String, exception: Throwable? = null) {
         errorMessage.postValue("Error: $errorMessageText")
         isErrorActive.postValue(true)
         Log.e("HouseholdViewModel", errorMessageText)
-        if(exception != null)
-        {
+        if (exception != null) {
             Log.e("HouseholdViewModel", errorMessageText, exception)
         }
     }
+
+
 }
