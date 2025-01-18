@@ -1,13 +1,12 @@
 package com.example.harmonizer.ui.screens.home.tasks
 
-import androidx.compose.foundation.layout.Box
+import android.app.DatePickerDialog
+import com.example.harmonizer.ui.theme.HarmonizerTheme
+import android.widget.DatePicker
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,58 +18,59 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.harmonizer.R
 import com.example.harmonizer.helpers.toDateString
-import com.example.harmonizer.remote.api.models.responses.HouseholdMemberResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdTaskResponse
 import com.example.harmonizer.ui.viewmodels.HouseholdViewModel
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetailsDialog(
-    task: HouseholdTaskResponse,
-    members: List<HouseholdMemberResponse>,
+    taskId: Int,
     viewModel: HouseholdViewModel,
     updateOpenDetailsTask: (openDetailsTask: HouseholdTaskResponse?) -> Unit
 ) {
+    val householdState = viewModel.household.observeAsState()
+    val task = householdState.value!!.tasks.first { it.id == taskId }
+    val members = householdState.value!!.members;
     var selectedMember by remember { mutableStateOf(task.assignedMemberId) }
     var isTaskDone by remember { mutableStateOf(task.isDone) }
-    var isDatePickerOpen by remember { mutableStateOf(false) }
-    val initialTaskDueDateMillis = task.dueDate.toEpochSecond() * 1000;
-    val datePickerState =
-        rememberDatePickerState(
-            initialSelectedDateMillis = initialTaskDueDateMillis
-        )
     var isEditingTaskTitle by remember { mutableStateOf(false) }
     var isEditingTaskDesc by remember { mutableStateOf(false) }
     var taskCurrentTitle by remember { mutableStateOf(task.name) }
     var taskCurrentDesc by remember { mutableStateOf(task.description) }
 
+    val context = LocalContext.current
+    val datePickerDialog = harmonizerDatePicker(
+        context,
+        task.dueDate,
+        { viewModel.updateTaskDueDate(task.id, it.toEpochSecond() * 1000) });
+
     Dialog(
         onDismissRequest = {
             updateOpenDetailsTask(null)
-        },
-        properties = DialogProperties(dismissOnClickOutside = true)
+        }, properties = DialogProperties(dismissOnClickOutside = true)
     ) {
         Card(
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -87,7 +87,7 @@ fun TaskDetailsDialog(
                             value = taskCurrentTitle,
                             onValueChange = { taskCurrentTitle = it },
                             textStyle = MaterialTheme.typography.titleSmall,
-                            singleLine = true
+                            singleLine = false
                         )
                     } else {
                         Text(
@@ -103,8 +103,7 @@ fun TaskDetailsDialog(
 
                             if (!isEditingTaskTitle) {
                                 viewModel.updateTaskTitle(
-                                    task.id,
-                                    taskCurrentTitle
+                                    task.id, taskCurrentTitle
                                 )
                             }
                         }) {
@@ -143,8 +142,7 @@ fun TaskDetailsDialog(
 
                             if (!isEditingTaskDesc) {
                                 viewModel.updateTaskDesc(
-                                    task.id,
-                                    taskCurrentDesc
+                                    task.id, taskCurrentDesc
                                 )
                             }
                         }) {
@@ -160,49 +158,22 @@ fun TaskDetailsDialog(
                 ) {
                     Text("Termin: ", style = MaterialTheme.typography.titleSmall)
                     Text(
-                        text = datePickerState.selectedDateMillis!!.toDateString(),
+                        text = task.dueDate.toDateString(),
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    IconButton(onClick = {
-                        isDatePickerOpen = true;
-                    }) {
-                        Icon(Icons.Default.Edit, "Edit date")
-                    }
-                }
-                if (isDatePickerOpen) {
-                    Dialog(
-                        onDismissRequest = {
-                            isDatePickerOpen = false;
+                    IconButton(
+                        onClick = {
+                            datePickerDialog.show()
                         },
-                        properties = DialogProperties(dismissOnClickOutside = true)
                     ) {
-                        LaunchedEffect(datePickerState.selectedDateMillis) {
-                            datePickerState.selectedDateMillis
-                                ?.let { selectedDate ->
-                                    if (initialTaskDueDateMillis != selectedDate) {
-                                        viewModel.updateTaskDueDate(task.id, selectedDate)
-                                        isDatePickerOpen = false
-                                    }
-                                }
-                        }
-
-                        Card(
-                            modifier = Modifier.padding(1.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                        )
-                        {
-                            DatePicker(
-                                state = datePickerState,
-                                showModeToggle = false
-                            )
-                        }
+                        Icon(Icons.Default.Edit, "Edytuj datę")
                     }
+
                 }
                 MemberDropdown(selectedMember, items = members, onItemSelected = {
                     selectedMember = it
                     viewModel.assignTaskToMember(task.id, it)
-                }
-                )
+                })
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 16.dp)
@@ -232,14 +203,12 @@ fun TaskDetailsDialog(
                         onClick = {
                             isTaskDone = !isTaskDone
                             viewModel.updateTaskDoneStatus(task.id, isTaskDone)
-                        },
-                        colors = ButtonDefaults.buttonColors(
+                        }, colors = ButtonDefaults.buttonColors(
                             containerColor = if (!isTaskDone) Color(0xFFA5D6A7) else Color(
                                 0xFFEF9A9A
                             )
                         )
-                    )
-                    {
+                    ) {
                         Text(
                             text = if (isTaskDone) "Przywróć zadanie" else "Ukończ zadanie",
                             color = Color.White
@@ -250,3 +219,5 @@ fun TaskDetailsDialog(
         }
     }
 }
+
+

@@ -43,7 +43,7 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
     var openTaskDetails by remember { mutableStateOf<HouseholdTaskResponse?>(null) }
     var showFilteringDropdown by remember { mutableStateOf(false) }
     var taskFilters by remember { mutableStateOf(TaskFilters(true, true, true)) }
-    var tasksListState = rememberLazyListState()
+    val tasksListState = rememberLazyListState()
 
     Column(
         modifier = Modifier
@@ -90,7 +90,7 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
     }
 
     openTaskDetails?.let{ task ->
-        TaskDetailsDialog(task, household!!.members, viewModel, updateOpenDetailsTask = {openTaskDetails = it})
+        TaskDetailsDialog(task.id, viewModel, updateOpenDetailsTask = {openTaskDetails = it})
     }
 
     LazyColumn(

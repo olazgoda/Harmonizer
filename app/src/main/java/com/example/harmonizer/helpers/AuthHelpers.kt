@@ -10,6 +10,13 @@ fun saveAuthData(context: Context, token: String, email: String, password: Strin
     prefs.edit().putString("password", password).apply()
 }
 
+fun clearAuthData(context: Context) {
+    val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+    prefs.edit().remove("jwt_token").apply()
+    prefs.edit().remove("email").apply()
+    prefs.edit().remove("password").apply()
+}
+
 fun getStoredJwt(context: Context): String? {
     val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
     return prefs.getString("jwt_token", null)

@@ -12,16 +12,17 @@ import com.example.harmonizer.remote.api.errors.parseError
 import com.example.harmonizer.remote.api.models.requests.CreateInvitationRequest
 import com.example.harmonizer.remote.api.models.requests.CreateTaskRequest
 import com.example.harmonizer.remote.api.models.requests.UpdateTaskRequest
+import com.example.harmonizer.remote.api.models.requests.UpdateUserFirstName
+import com.example.harmonizer.remote.api.models.requests.UpdateUserLastName
 import com.example.harmonizer.remote.api.models.responses.HouseholdEventResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdResponse
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import retrofit2.Response
 import java.time.ZonedDateTime
 
 class HouseholdViewModel(context: Context) : ViewModel() {
     private val jwtBearerHeaderValue: String = getBearerValue(context);
-    val household: MutableLiveData<HouseholdResponse> = MutableLiveData();
+    val household: MutableLiveData<HouseholdResponse> = MutableLiveData()
     val householdEvents: MutableLiveData<List<HouseholdEventResponse>> = MutableLiveData();
     val isErrorActive: MutableLiveData<Boolean> = MutableLiveData(false);
     val errorMessage: MutableLiveData<String> = MutableLiveData("");
@@ -185,14 +186,14 @@ class HouseholdViewModel(context: Context) : ViewModel() {
         }
     }
 
-    private fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
+    fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
         val errorBodyRaw = errorBody?.string()
         Log.i("HttpResponse", "HttpResponseCode $responseCode.toString()")
         val errorMessageText = parseError(errorBodyRaw ?: "{}")
         raiseError(errorMessageText)
     }
 
-    private fun raiseError(errorMessageText: String, exception: Throwable? = null) {
+    fun raiseError(errorMessageText: String, exception: Throwable? = null) {
         errorMessage.postValue("Error: $errorMessageText")
         isErrorActive.postValue(true)
         Log.e("HouseholdViewModel", errorMessageText)

@@ -1,10 +1,10 @@
 package com.example.harmonizer.ui.screens.home.tasks
 
-import androidx.compose.foundation.layout.Box
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,7 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -34,7 +34,7 @@ import com.example.harmonizer.helpers.toDateString
 import com.example.harmonizer.helpers.toZonedDateTime
 import com.example.harmonizer.remote.api.models.responses.HouseholdMemberResponse
 import com.example.harmonizer.ui.viewmodels.HouseholdViewModel
-import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,14 +47,11 @@ fun NewTaskDialog(
     var selectedMemberId: Int? by remember { mutableStateOf(null) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    val currentTime = ZonedDateTime.now()
-    var dueDate: ZonedDateTime? = currentTime;
+    var dueDate by remember { mutableStateOf(ZonedDateTime.now()) }
 
-    var isDatePickerOpen by remember { mutableStateOf(false) }
-    val datePickerState =
-        rememberDatePickerState(
-            initialSelectedDateMillis = currentTime.toEpochSecond() * 1000
-        )
+    val datePickerDialog = harmonizerDatePicker(LocalContext.current, dueDate,
+        updateDate = {dueDate = it}
+    )
 
     Dialog(
         onDismissRequest = {
@@ -93,34 +90,16 @@ fun NewTaskDialog(
                         style = MaterialTheme.typography.titleSmall,
                     )
                     Text(
-                        text = datePickerState.selectedDateMillis!!.toDateString(),
+                        text = dueDate!!.toDateString(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     IconButton(onClick = {
-                        isDatePickerOpen = true;
+                        datePickerDialog.show()
                     }) {
                         Icon(Icons.Default.Edit, "Edit date")
                     }
                 }
-                if (isDatePickerOpen) {
-                    Dialog(
-                        onDismissRequest = {
-                            isDatePickerOpen = false;
-                            dueDate = datePickerState.selectedDateMillis!!.toZonedDateTime();
-                        },
-                        properties = DialogProperties(dismissOnClickOutside = true)
-                    ) {
-                        Card(
-                            modifier = Modifier.padding(4.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                        ) {
-                            DatePicker(
-                                state = datePickerState,
-                                showModeToggle = false
-                            )
-                        }
-                    }
-                }
+
                 MemberDropdown(selectedMemberId, items = members, onItemSelected = {
                     selectedMemberId = it
                 }

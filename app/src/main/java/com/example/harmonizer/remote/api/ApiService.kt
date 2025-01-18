@@ -4,9 +4,12 @@ import com.example.harmonizer.remote.api.models.requests.CreateTaskRequest
 import com.example.harmonizer.remote.api.models.requests.LoginRequest
 import com.example.harmonizer.remote.api.models.requests.RegisterRequest
 import com.example.harmonizer.remote.api.models.requests.UpdateTaskRequest
+import com.example.harmonizer.remote.api.models.requests.UpdateUserFirstName
+import com.example.harmonizer.remote.api.models.requests.UpdateUserLastName
 import com.example.harmonizer.remote.api.models.responses.HouseholdEventResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdInvitationResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdResponse
+import com.example.harmonizer.remote.api.models.responses.UserResponse
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -88,4 +91,24 @@ interface ApiService {
 
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Unit
+
+    @PATCH("users/{userId}/updateFirstName")
+    suspend fun updateUserFirstName(
+        @Path("userId") userId: Int,
+        @Header("Authorization") jwtToken: String,
+        @Body request: UpdateUserFirstName
+    ): Response<Unit>
+
+    @PATCH("users/{userId}/updateLastName")
+    suspend fun updateUserLastName(
+        @Path("userId") userId: Int,
+        @Header("Authorization") jwtToken: String,
+        @Body request: UpdateUserLastName
+    ): Response<Unit>
+
+    @GET("users/me")
+    suspend fun getUser(
+        @Header("Authorization") jwtToken: String,
+    ):Response<UserResponse>
+
 }

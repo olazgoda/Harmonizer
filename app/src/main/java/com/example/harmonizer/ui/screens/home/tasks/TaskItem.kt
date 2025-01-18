@@ -30,9 +30,9 @@ fun TaskItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
             containerColor = when {
-                task.isDone -> Color(0xFFA5D6A7)  // Soft green
-                isTaskOverdue -> Color(0xFFEF9A9A)  // Soft red
-                else -> Color(0xFF90CAF9)  // Soft blue
+                task.isDone -> Color(0xFFA5D6A7)
+                isTaskOverdue -> Color(0xFFEF9A9A)
+                else -> Color(0xffffee58)
             }
         ),
         onClick = {

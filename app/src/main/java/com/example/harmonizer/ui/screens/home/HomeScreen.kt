@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.harmonizer.ui.viewmodels.HouseholdViewModel
+import com.example.harmonizer.ui.viewmodels.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,7 @@ fun HomeScreen(navController: NavController, viewModel: HouseholdViewModel) {
     val items = listOf("Home", "Calendar", "Notifications", "Profile")
     var selectedItem by remember { mutableIntStateOf(0) }
 
+    val context = LocalContext.current
     LaunchedEffect(viewModel.selectedHouseholdId.value) {
         viewModel.refreshHouseholdData()
     }
@@ -52,7 +54,11 @@ fun HomeScreen(navController: NavController, viewModel: HouseholdViewModel) {
                     Text("Harmonizer", style = MaterialTheme.typography.headlineSmall)
                 },
                 actions = {
-                    IconButton(onClick = { /* Profile icon click */ }) {
+                    IconButton(
+                        onClick = {
+                            selectedItem = 4;
+                            viewModel.refreshHouseholdData()
+                        }) {
                         Icon(
                             Icons.Default.AccountCircle,
                             contentDescription = "Profile",
@@ -77,6 +83,7 @@ fun HomeScreen(navController: NavController, viewModel: HouseholdViewModel) {
                                         Icon(Icons.Default.Notifications, contentDescription = item)
                                     }
                                 }
+
                                 3 -> Icon(
                                     Icons.Default.Person,
                                     contentDescription = item
@@ -103,6 +110,8 @@ fun HomeScreen(navController: NavController, viewModel: HouseholdViewModel) {
                 1 -> BoxedTasks(viewModel)
 //                2 -> BoxedEvents(viewModel)
                 3 -> BoxedMembers(viewModel)
+                4 -> BoxedProfile(UserViewModel(context), navController)
+
             }
         }
     }
