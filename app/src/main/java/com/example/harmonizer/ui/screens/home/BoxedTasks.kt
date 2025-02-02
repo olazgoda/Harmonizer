@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
+import com.example.harmonizer.helpers.DisableBackPress
 import com.example.harmonizer.remote.api.models.responses.HouseholdTaskResponse
 import com.example.harmonizer.ui.screens.home.tasks.FilterTasksComponent
 import com.example.harmonizer.ui.screens.home.tasks.NewTaskDialog
@@ -62,13 +64,15 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
                 modifier = Modifier
                     .weight(1f)
             )
-            IconButton(onClick = {showFilteringDropdown = true}) {
+            IconButton(onClick = { showFilteringDropdown = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "Filter")
             }
             IconButton(
-                onClick = { showNewTaskDialog = true },
-                modifier = Modifier
-                    .shadow(elevation = 8.dp)
+                onClick = {
+                    if (household != null) {
+                        showNewTaskDialog = true
+                    }
+                }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add task")
             }
@@ -85,12 +89,12 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
         }
     }
 
-    if(showNewTaskDialog) {
+    if (showNewTaskDialog) {
         NewTaskDialog(members = household!!.members, viewModel) { showNewTaskDialog = it }
     }
 
-    openTaskDetails?.let{ task ->
-        TaskDetailsDialog(task.id, viewModel, updateOpenDetailsTask = {openTaskDetails = it})
+    openTaskDetails?.let { task ->
+        TaskDetailsDialog(task.id, viewModel, updateOpenDetailsTask = { openTaskDetails = it })
     }
 
     LazyColumn(
@@ -103,22 +107,22 @@ fun BoxScope.BoxedTasks(viewModel: HouseholdViewModel) {
             val filteredTasks = tasks.filter { task ->
                 (!taskFilters.showOngoing && !taskFilters.showOverdue && !taskFilters.showCompleted)
                         ||
-                (taskFilters.showCompleted && task.isDone) ||
+                        (taskFilters.showCompleted && task.isDone) ||
                         (taskFilters.showOverdue && task.dueDate < dateTimeNow && !task.isDone) ||
                         (taskFilters.showOngoing && (task.dueDate >= dateTimeNow) && !task.isDone)
             }.sortedBy { it.dueDate }
 
-            items(items = filteredTasks, key = {it.id} )
+            items(items = filteredTasks, key = { it.id })
             { task ->
                 TaskItem(
                     task = task,
+                    household?.members?.firstOrNull { it.id == task.assignedMemberId },
                     dateTimeNow,
-                    {openTaskDetails = it}
+                    { openTaskDetails = it }
                 )
             }
         }
     }
-
 }
 
 

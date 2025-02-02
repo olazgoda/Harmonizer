@@ -13,5 +13,6 @@ data class HouseholdTaskResponse(
     @Serializable(with = ZoneDateTimeKSerializer::class)
     val dueDate: ZonedDateTime,  // Date as ISO 8601 string (e.g., "2024-01-01T00:00:00Z")
     val assignedMemberId: Int?,
+    val assignedMember: HouseholdMemberResponse?,
     val isDone: Boolean
 )

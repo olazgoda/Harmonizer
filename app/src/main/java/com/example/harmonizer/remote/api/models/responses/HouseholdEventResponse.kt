@@ -12,5 +12,6 @@ data class HouseholdEventResponse(
     val eventType: Int,
     val taskId: Int,
     @Serializable(with = ZoneDateTimeKSerializer::class)
-    val createdAt: ZonedDateTime
+    val createdAt: ZonedDateTime,
+    val isRead: Boolean
 )

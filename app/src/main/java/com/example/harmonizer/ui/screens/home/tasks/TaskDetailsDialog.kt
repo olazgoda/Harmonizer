@@ -1,8 +1,5 @@
 package com.example.harmonizer.ui.screens.home.tasks
 
-import android.app.DatePickerDialog
-import com.example.harmonizer.ui.theme.HarmonizerTheme
-import android.widget.DatePicker
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -61,11 +58,14 @@ fun TaskDetailsDialog(
     var taskCurrentTitle by remember { mutableStateOf(task.name) }
     var taskCurrentDesc by remember { mutableStateOf(task.description) }
 
-    val context = LocalContext.current
-    val datePickerDialog = harmonizerDatePicker(
-        context,
-        task.dueDate,
-        { viewModel.updateTaskDueDate(task.id, it.toEpochSecond() * 1000) });
+    var isDatePickerShown by remember { mutableStateOf(false) }
+    if (isDatePickerShown) {
+        HarmonizerDatePicker(
+            task.dueDate,
+            updateDate = { viewModel.updateTaskDueDate(task.id, it.toEpochSecond() * 1000) },
+            updateIsDatePickerShown = { isDatePickerShown = it }
+        )
+    }
 
     Dialog(
         onDismissRequest = {
@@ -163,17 +163,19 @@ fun TaskDetailsDialog(
                     )
                     IconButton(
                         onClick = {
-                            datePickerDialog.show()
+                            isDatePickerShown = true
                         },
                     ) {
                         Icon(Icons.Default.Edit, "Edytuj datę")
                     }
 
                 }
-                MemberDropdown(selectedMember, items = members, onItemSelected = {
-                    selectedMember = it
-                    viewModel.assignTaskToMember(task.id, it)
-                })
+                Row {
+                    MemberDropdown(selectedMember, items = members, onItemSelected = {
+                        selectedMember = it
+                        viewModel.assignTaskToMember(task.id, it)
+                    })
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 16.dp)

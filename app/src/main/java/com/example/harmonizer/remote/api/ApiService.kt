@@ -2,10 +2,10 @@ import com.example.harmonizer.remote.api.models.requests.CreateHouseholdRequest
 import com.example.harmonizer.remote.api.models.requests.CreateInvitationRequest
 import com.example.harmonizer.remote.api.models.requests.CreateTaskRequest
 import com.example.harmonizer.remote.api.models.requests.LoginRequest
+import com.example.harmonizer.remote.api.models.requests.MarkAsReadRequest
 import com.example.harmonizer.remote.api.models.requests.RegisterRequest
 import com.example.harmonizer.remote.api.models.requests.UpdateTaskRequest
-import com.example.harmonizer.remote.api.models.requests.UpdateUserFirstName
-import com.example.harmonizer.remote.api.models.requests.UpdateUserLastName
+import com.example.harmonizer.remote.api.models.requests.UpdateUserName
 import com.example.harmonizer.remote.api.models.responses.HouseholdEventResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdInvitationResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdResponse
@@ -17,7 +17,10 @@ interface ApiService {
 
     // Household Endpoints
     @POST("households")
-    suspend fun createHousehold(@Body request: CreateHouseholdRequest): Int
+    suspend fun createHousehold(
+        @Body request: CreateHouseholdRequest,
+        @Header("Authorization") jwtBearerHeaderValue: String
+    ): Response<Int>
 
     @GET("households/{householdId}")
     suspend fun getHousehold(
@@ -30,6 +33,13 @@ interface ApiService {
         @Path("householdId") householdId: Int,
         @Header("Authorization") jwtToken: String
     ): Response<List<HouseholdEventResponse>>
+
+    @PATCH("households/{householdId}/events")
+    suspend fun markEventsAsRead(
+        @Path("householdId") householdId: Int,
+        @Body request: MarkAsReadRequest,
+        @Header("Authorization") jwtToken: String
+    ): Response<Unit>
 
     @GET("households/me/owned")
     suspend fun getOwnedHouseholds(@Header("Authorization") jwtToken: String): List<HouseholdResponse>
@@ -92,23 +102,15 @@ interface ApiService {
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Unit
 
-    @PATCH("users/{userId}/updateFirstName")
-    suspend fun updateUserFirstName(
-        @Path("userId") userId: Int,
+    @PATCH("users/me")
+    suspend fun updateUserName(
         @Header("Authorization") jwtToken: String,
-        @Body request: UpdateUserFirstName
-    ): Response<Unit>
-
-    @PATCH("users/{userId}/updateLastName")
-    suspend fun updateUserLastName(
-        @Path("userId") userId: Int,
-        @Header("Authorization") jwtToken: String,
-        @Body request: UpdateUserLastName
+        @Body request: UpdateUserName
     ): Response<Unit>
 
     @GET("users/me")
     suspend fun getUser(
         @Header("Authorization") jwtToken: String,
-    ):Response<UserResponse>
+    ): Response<UserResponse>
 
 }

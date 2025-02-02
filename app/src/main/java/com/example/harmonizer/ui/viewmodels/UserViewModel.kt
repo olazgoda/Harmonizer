@@ -6,23 +6,26 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.harmonizer.helpers.clearAuthData
 import com.example.harmonizer.helpers.getBearerValue
+import com.example.harmonizer.helpers.saveAuthData
 import com.example.harmonizer.remote.api.errors.parseError
-import com.example.harmonizer.remote.api.models.requests.UpdateUserFirstName
-import com.example.harmonizer.remote.api.models.requests.UpdateUserLastName
+import com.example.harmonizer.remote.api.models.requests.LoginRequest
+import com.example.harmonizer.remote.api.models.requests.UpdateUserName
 import com.example.harmonizer.remote.api.models.responses.UserResponse
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 
-class UserViewModel(context: Context) : ViewModel() {
-    private val jwtBearerHeaderValue: String = getBearerValue(context)
-    val errorMessage: MutableLiveData<String> = MutableLiveData("");
-    val isErrorActive: MutableLiveData<Boolean> = MutableLiveData(false);
+class UserViewModel(
+    private val applicationContext: Context
+) : ViewModel() {
+    private val jwtBearerHeaderValue: String = getBearerValue(applicationContext)
+    val errorMessage: MutableLiveData<String> = MutableLiveData("")
+    val isErrorActive: MutableLiveData<Boolean> = MutableLiveData(false)
     val user: MutableLiveData<UserResponse?> = MutableLiveData()
 
     fun refreshUser() = viewModelScope.launch {
         try {
-
             val response = RetrofitClient.instance.getUser(jwtBearerHeaderValue)
 
             if (!response.isSuccessful) {
@@ -31,7 +34,9 @@ class UserViewModel(context: Context) : ViewModel() {
                 return@launch
             }
 
-            user.postValue(response.body())
+            Log.d("UserResponse", response.body().toString())
+
+            user.value = response.body()
 
         } catch (e: Exception) {
             raiseError("Wystąpił błąd, spróbuj ponownie", e);
@@ -39,12 +44,11 @@ class UserViewModel(context: Context) : ViewModel() {
     }
 
 
-    fun updateUserFirstName(userId: Int, firstName: String) = viewModelScope.launch {
+    fun updateUserName(firstName: String, lastName: String) = viewModelScope.launch {
         try {
-            val response = RetrofitClient.instance.updateUserFirstName(
-                userId = userId,
+            val response = RetrofitClient.instance.updateUserName(
                 jwtToken = jwtBearerHeaderValue,
-                request = UpdateUserFirstName(firstName)
+                request = UpdateUserName(firstName, lastName)
             )
 
             if (!response.isSuccessful) {
@@ -52,28 +56,30 @@ class UserViewModel(context: Context) : ViewModel() {
                 handleErrorResponse(response.errorBody(), response.code())
                 return@launch
             }
+            refreshUser()
 
         } catch (e: Exception) {
             raiseError("Wystąpił błąd, spróbuj ponownie", e);
         }
     }
 
-    fun updateUserLastName(userId: Int, lastName: String) = viewModelScope.launch {
+    suspend fun login(email: String, password: String){
         try {
-            val response = RetrofitClient.instance.updateUserLastName(
-                jwtToken = jwtBearerHeaderValue,
-                userId = userId,
-                request = UpdateUserLastName(lastName)
+            val token = RetrofitClient.instance.login(
+                LoginRequest(email, password)
             )
-
-            if (!response.isSuccessful) {
-                Log.d("HttpErrorBody", response.raw().body.toString())
-                handleErrorResponse(response.errorBody(), response.code())
-                return@launch
-            }
-        } catch (e: Exception) {
-            raiseError("Wystąpił błąd, spróbuj ponownie", e);
+            saveAuthData(applicationContext, token, email, password)
+            refreshUser()
         }
+        catch (e: Exception){
+            raiseError("Wystąpił błąd, spróbuj ponownie", e)
+            throw e
+        }
+    }
+
+    fun logout() {
+        user.postValue(null)
+        clearAuthData(applicationContext)
     }
 
     private fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
@@ -92,7 +98,8 @@ class UserViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun logout() {
-        user.postValue(null)
+    fun clearErrorState() {
+        isErrorActive.value = false
+        errorMessage.value = ""
     }
 }

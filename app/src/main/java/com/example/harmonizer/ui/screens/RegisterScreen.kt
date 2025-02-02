@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.harmonizer.helpers.getFirstAppLaunch
 import com.example.harmonizer.helpers.saveAuthData
 import com.example.harmonizer.remote.api.models.requests.LoginRequest
 import com.example.harmonizer.remote.api.models.requests.RegisterRequest
@@ -32,7 +36,7 @@ import com.example.harmonizer.ui.dictionary.ScreenName
 import kotlinx.coroutines.launch
 
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolean) -> Unit) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -40,11 +44,13 @@ fun RegisterScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val firstAppLaunch = getFirstAppLaunch(context)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp)
+            .imePadding(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -57,7 +63,11 @@ fun RegisterScreen(navController: NavController) {
             onValueChange = { firstName = it },
             label = { Text("Imię") },
             placeholder = { Text("Jan") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -67,7 +77,11 @@ fun RegisterScreen(navController: NavController) {
             onValueChange = { lastName = it },
             label = { Text("Nazwisko") },
             placeholder = { Text("Kowalski") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -77,7 +91,11 @@ fun RegisterScreen(navController: NavController) {
             onValueChange = { email = it },
             label = { Text("Email") },
             placeholder = { Text("example@gmail.com") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -88,7 +106,11 @@ fun RegisterScreen(navController: NavController) {
             label = { Text("Hasło") },
             placeholder = { Text("Wprowadź hasło") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
         )
 
         Text(
@@ -112,14 +134,20 @@ fun RegisterScreen(navController: NavController) {
                                 lastName = lastName
                             )
                         )
-                        val token = RetrofitClient.instance.login(LoginRequest(email,password))
+                        val token = RetrofitClient.instance.login(LoginRequest(email, password))
                         saveAuthData(context, token, email, password)
-                        navController.navigate(ScreenName.Home)
+                        if (firstAppLaunch) {
+                            navController.navigate(ScreenName.Onboarding)
+                        } else {
+                            navController.navigate(ScreenName.Home)
+
+                        }
                     } catch (e: Exception) {
                         errorMessage = "Rejestracja nie powiodła się"
                     }
                 }
             },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6600)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Zarejestruj się")

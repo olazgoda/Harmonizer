@@ -1,7 +1,5 @@
 package com.example.harmonizer.ui.screens.home.tasks
 
-import android.app.DatePickerDialog
-import android.widget.DatePicker
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -12,7 +10,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,32 +23,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.harmonizer.helpers.toDateString
-import com.example.harmonizer.helpers.toZonedDateTime
 import com.example.harmonizer.remote.api.models.responses.HouseholdMemberResponse
 import com.example.harmonizer.ui.viewmodels.HouseholdViewModel
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewTaskDialog(
     members: List<HouseholdMemberResponse>,
-    viewModel: HouseholdViewModel,
+    householdViewModel: HouseholdViewModel,
     updateShowNewTaskDialog: (isNewTaskDialogShown: Boolean) -> Unit
 ) {
     var selectedMemberId: Int? by remember { mutableStateOf(null) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var dueDate by remember { mutableStateOf(ZonedDateTime.now()) }
+    var isDatePickerShown by remember { mutableStateOf(false) }
 
-    val datePickerDialog = harmonizerDatePicker(LocalContext.current, dueDate,
-        updateDate = {dueDate = it}
-    )
+    if (isDatePickerShown) {
+        HarmonizerDatePicker(
+            dueDate,
+            updateDate = { dueDate = it },
+            updateIsDatePickerShown = { isDatePickerShown = it }
+        )
+    }
 
     Dialog(
         onDismissRequest = {
@@ -94,7 +93,7 @@ fun NewTaskDialog(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     IconButton(onClick = {
-                        datePickerDialog.show()
+                        isDatePickerShown = true
                     }) {
                         Icon(Icons.Default.Edit, "Edit date")
                     }
@@ -110,7 +109,7 @@ fun NewTaskDialog(
                 ) {
                     Button(
                         onClick = {
-                            viewModel.createTask(title, description, dueDate!!, selectedMemberId)
+                            householdViewModel.createTask(title, description, dueDate!!, selectedMemberId)
                             updateShowNewTaskDialog(false);
                         }
                     )

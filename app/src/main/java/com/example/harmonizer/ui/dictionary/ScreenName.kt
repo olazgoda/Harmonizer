@@ -6,6 +6,7 @@ public class ScreenName {
         const val Auth = "auth";
         const val Login = "login";
         const val Register = "register";
+        const val Onboarding = "onboarding";
         const val Tasks = "tasks";
         const val Notifications = "notifications";
         const val Households = "households";

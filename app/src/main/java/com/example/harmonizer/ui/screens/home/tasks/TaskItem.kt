@@ -12,16 +12,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.harmonizer.helpers.toDateString
+import com.example.harmonizer.remote.api.models.responses.HouseholdMemberResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdTaskResponse
 import java.time.ZonedDateTime
 
 @Composable
 fun TaskItem(
     task: HouseholdTaskResponse,
+    assignedMemberData: HouseholdMemberResponse?,
     dateTimeNow: ZonedDateTime,
     updateOpenDetailsTaskId: (openDetailsTaskId: HouseholdTaskResponse?) -> Unit
 ) {
     val isTaskOverdue = task.dueDate < dateTimeNow
+    val assignedMemberName = assignedMemberData?.let { it.firstName + " " + it.lastName }
 
     Card(
         modifier = Modifier
@@ -42,7 +45,7 @@ fun TaskItem(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = task.name, style = MaterialTheme.typography.bodyLarge, color = Color.DarkGray)
             Text(text = "Termin: ${task.dueDate.toDateString()}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
-            Text(text = "Przypisano do: ${task.assignedMemberId ?: "Nie wskazano domownika"}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+            Text(text = "Przypisano do: ${assignedMemberName ?: "Nie wskazano domownika"}", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
         }
     }
 }

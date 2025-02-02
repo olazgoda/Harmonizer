@@ -27,14 +27,14 @@ fun getBearerValue(context: Context): String {
     return "Bearer ${prefs.getString("jwt_token", null)}";
 }
 
-fun getStoredEmail(context: Context): String? {
+fun getFirstAppLaunch(context: Context): Boolean {
     val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-    return prefs.getString("email", null)
+    return prefs.getBoolean("first_app_launch", true)
 }
 
-fun getStoredPassword(context: Context): String? {
+fun updateFirstAppLaunch(context: Context, firstAppLaunch: Boolean) {
     val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-    return prefs.getString("password", null)
+    prefs.edit().putBoolean("first_app_launch", firstAppLaunch).apply()
 }
 
 fun isTokenValid(token: String): Boolean {

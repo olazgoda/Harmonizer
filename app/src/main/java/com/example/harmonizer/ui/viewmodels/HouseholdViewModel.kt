@@ -7,47 +7,94 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.harmonizer.helpers.getBearerValue
+import com.example.harmonizer.helpers.getHouseholdData
+import com.example.harmonizer.helpers.saveHouseholdData
 import com.example.harmonizer.helpers.toZonedDateTime
 import com.example.harmonizer.remote.api.errors.parseError
+import com.example.harmonizer.remote.api.models.requests.CreateHouseholdRequest
 import com.example.harmonizer.remote.api.models.requests.CreateInvitationRequest
 import com.example.harmonizer.remote.api.models.requests.CreateTaskRequest
+import com.example.harmonizer.remote.api.models.requests.MarkAsReadRequest
 import com.example.harmonizer.remote.api.models.requests.UpdateTaskRequest
-import com.example.harmonizer.remote.api.models.requests.UpdateUserFirstName
-import com.example.harmonizer.remote.api.models.requests.UpdateUserLastName
 import com.example.harmonizer.remote.api.models.responses.HouseholdEventResponse
 import com.example.harmonizer.remote.api.models.responses.HouseholdResponse
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import java.time.ZonedDateTime
 
-class HouseholdViewModel(context: Context) : ViewModel() {
-    private val jwtBearerHeaderValue: String = getBearerValue(context);
+class HouseholdViewModel(
+    private val applicationContext: Context
+) : ViewModel() {
+    private val jwtBearerHeaderValue: String = getBearerValue(applicationContext);
     val household: MutableLiveData<HouseholdResponse> = MutableLiveData()
     val householdEvents: MutableLiveData<List<HouseholdEventResponse>> = MutableLiveData();
     val isErrorActive: MutableLiveData<Boolean> = MutableLiveData(false);
     val errorMessage: MutableLiveData<String> = MutableLiveData("");
-    val selectedHouseholdId: MutableLiveData<Int> = MutableLiveData(1);
+    var selectedHouseholdId: MutableLiveData<Int?> = MutableLiveData(getHouseholdData(applicationContext));
+    val selectedHouseholdName: MutableLiveData<String> = MutableLiveData("Wybierz lub stwórz nowe");
 
     fun refreshHouseholdData() = viewModelScope.launch {
         try {
+            if (selectedHouseholdId.value == null) {
+                return@launch
+            }
             val householdResponse = RetrofitClient.instance.getHousehold(
                 selectedHouseholdId.value!!,
                 jwtBearerHeaderValue
             )
-            household.postValue(householdResponse);
+            household.value = householdResponse;
+            selectedHouseholdName.value = householdResponse.name
 
             val householdEventsResponse = RetrofitClient.instance.getHouseholdEvents(
                 selectedHouseholdId.value!!,
                 jwtBearerHeaderValue
             )
             if (householdEventsResponse.isSuccessful) {
-                householdEvents.postValue(householdEventsResponse.body());
+                householdEvents.value = householdEventsResponse.body()
             }
 
         } catch (e: Exception) {
             isErrorActive.postValue(true)
             Log.e("MainActivity", "Exception occurred", e)
             errorMessage.postValue("Failed to fetch household with id $selectedHouseholdId")
+        }
+    }
+
+    fun markEventsAsRead() = viewModelScope.launch {
+        val readEventIds = householdEvents.value?.map { it.id }
+        val householdId = selectedHouseholdId.value
+        if (!readEventIds.isNullOrEmpty() && householdId != null) {
+            val response = RetrofitClient.instance.markEventsAsRead(
+                householdId,
+                MarkAsReadRequest(readEventIds),
+                jwtBearerHeaderValue
+            )
+
+            if (response.isSuccessful) {
+                refreshHouseholdData()
+            }
+        }
+    }
+
+    fun createHousehold(name: String) = viewModelScope.launch {
+        try {
+            val response = RetrofitClient.instance.createHousehold(
+                CreateHouseholdRequest(name),
+                jwtBearerHeaderValue
+            )
+
+            if (!response.isSuccessful) {
+                Log.d("HttpErrorBody", response.raw().body.toString())
+                handleErrorResponse(response.errorBody(), response.code())
+                return@launch
+            }
+
+            selectedHouseholdId.value = response.body()
+            refreshHouseholdData()
+
+        } catch (e: Exception) {
+            isErrorActive.postValue(true)
+            errorMessage.postValue("Could not create household")
         }
     }
 
@@ -186,14 +233,14 @@ class HouseholdViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
+    private fun handleErrorResponse(errorBody: ResponseBody?, responseCode: Int) {
         val errorBodyRaw = errorBody?.string()
         Log.i("HttpResponse", "HttpResponseCode $responseCode.toString()")
         val errorMessageText = parseError(errorBodyRaw ?: "{}")
         raiseError(errorMessageText)
     }
 
-    fun raiseError(errorMessageText: String, exception: Throwable? = null) {
+    private fun raiseError(errorMessageText: String, exception: Throwable? = null) {
         errorMessage.postValue("Error: $errorMessageText")
         isErrorActive.postValue(true)
         Log.e("HouseholdViewModel", errorMessageText)
@@ -202,5 +249,14 @@ class HouseholdViewModel(context: Context) : ViewModel() {
         }
     }
 
+    fun updateSelectedHousehold(newHouseholdId: Int) {
+        selectedHouseholdId.value = newHouseholdId
+        refreshHouseholdData()
+        saveHouseholdData(applicationContext, newHouseholdId)
+    }
 
+    fun clearErrorState() {
+        isErrorActive.value = false
+        errorMessage.value = ""
+    }
 }
