@@ -93,7 +93,7 @@ fun BoxScope.BoxedUpcomingTasks(
                         val filteredTasks = tasks
                             .filter { task ->
                                 task.assignedMemberId == currentMemberId() &&
-                                        !task.isDone && task.dueDate >= currentTime
+                                        !task.isDone && task.dueDate >= currentTime.withHour(0).withMinute(0).withSecond(0)
                             }
                             .sortedBy { it.dueDate }
                             .take(3)

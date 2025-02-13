@@ -23,7 +23,7 @@ fun TaskItem(
     dateTimeNow: ZonedDateTime,
     updateOpenDetailsTaskId: (openDetailsTaskId: HouseholdTaskResponse?) -> Unit
 ) {
-    val isTaskOverdue = task.dueDate < dateTimeNow
+    val isTaskOverdue = task.dueDate <= dateTimeNow.withHour(0).withMinute(0).withSecond(0)
     val assignedMemberName = assignedMemberData?.let { it.firstName + " " + it.lastName }
 
     Card(
