@@ -51,7 +51,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text("Zaloguj się", style = MaterialTheme.typography.headlineMedium)
+        Text("Zaloguj się", style = MaterialTheme.typography.headlineMedium, color = Color.Black)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -101,7 +101,7 @@ fun LoginScreen(
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6600)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Zaloguj się")
+            Text("Zaloguj się", color = Color.Black)
         }
 
         errorMessage?.let {

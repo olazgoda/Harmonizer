@@ -160,7 +160,6 @@ fun HomeScreen(
                     }
                 }
             }
-
             Row(modifier = Modifier.weight(1f)) {}
         }
     }

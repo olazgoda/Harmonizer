@@ -55,7 +55,7 @@ fun AuthScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            Text("Rejestracja")
+            Text("Rejestracja", color = Color.Black)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -79,7 +79,7 @@ fun AuthScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            Text("Logowanie")
+            Text("Logowanie", color = Color.Black)
         }
     }
 }

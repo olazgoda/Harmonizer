@@ -50,10 +50,7 @@ fun BoxScope.BoxedMembers(viewModel: HouseholdViewModel) {
                     .weight(1f)
             )
             IconButton(
-                onClick = { showNewMemberDialog = true },
-                modifier = Modifier
-                    .shadow(elevation = 8.dp)
-            ) {
+                onClick = { showNewMemberDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add task")
             }
         }
@@ -68,12 +65,12 @@ fun BoxScope.BoxedMembers(viewModel: HouseholdViewModel) {
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 48.dp),
     ) {
-        if(household?.members != null) {
+        if (household?.members != null) {
             items(items = household!!.members)
             { member ->
                 MemberItem(
                     member = member,
-                    onDeleteMember = {viewModel.deleteMember(member.id)}
+                    onDeleteMember = { viewModel.deleteMember(member.id) }
                 )
             }
         }

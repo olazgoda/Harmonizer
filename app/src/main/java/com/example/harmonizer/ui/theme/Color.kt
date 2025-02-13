@@ -10,21 +10,14 @@ val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8B8)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
+val Purple40 = Color(0xFFF44336)
+val PurpleGrey40 = Color(0xFFF44336)
 val Pink40 = Color(0xFF7D5260)
-
-val RedButtonColors = ButtonColors(
-    containerColor = Color.Red,
-    contentColor = Color.Black,
-    disabledContentColor = Color.White,
-    disabledContainerColor = Color.Gray)
 
 @Composable
 fun outlinedTextFieldColors() =
 OutlinedTextFieldDefaults.colors(
     disabledTextColor = MaterialTheme.colorScheme.onSurface,
-
     disabledContainerColor = Color.Transparent,
     disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
@@ -36,5 +29,4 @@ OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Color(0x00FF0000),
     unfocusedBorderColor = Color(0x00FF0000),
     disabledBorderColor = Color(0x00FF0000)
-
 )

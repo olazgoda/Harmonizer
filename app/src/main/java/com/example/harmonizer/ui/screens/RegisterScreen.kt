@@ -1,6 +1,7 @@
 package com.example.harmonizer.ui.screens
 
 import RetrofitClient
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -66,7 +67,8 @@ fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolea
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                disabledTextColor = Color.Black
+                disabledTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             )
         )
 
@@ -80,7 +82,8 @@ fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolea
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                disabledTextColor = Color.Black
+                disabledTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             )
         )
 
@@ -94,7 +97,8 @@ fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolea
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                disabledTextColor = Color.Black
+                disabledTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             )
         )
 
@@ -109,7 +113,8 @@ fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolea
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
-                disabledTextColor = Color.Black
+                disabledTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             )
         )
 
@@ -150,7 +155,7 @@ fun RegisterScreen(navController: NavController, updateIsUserAuthorized: (Boolea
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6600)),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Zarejestruj się")
+            Text("Zarejestruj się", color = Color.Black)
         }
 
         errorMessage?.let {

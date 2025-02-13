@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             HarmonizerTheme {
-                DisableBackPress()
                 val context = LocalContext.current
                 var isUserAuthorized by remember { mutableStateOf(false) }
                 var isFirstAppLaunch by remember { mutableStateOf(getFirstAppLaunch(context)) }
@@ -56,6 +55,7 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(key1 = isUserAuthorized, key2 = isFirstAppLaunch) {
                     if (isUserAuthorized && isFirstAppLaunch) {
+
                         Log.d("navigation", "Navigating to Onboarding")
                         navController.navigate(ScreenName.Onboarding)
                     } else if (isUserAuthorized) {
